@@ -1,0 +1,6 @@
+{
+    "_id": "3",
+    "file_path": "3.json",
+    "body": "Test 3",
+	"foo": "Bar"
+}
