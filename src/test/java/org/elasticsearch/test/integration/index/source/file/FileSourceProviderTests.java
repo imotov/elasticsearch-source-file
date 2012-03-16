@@ -5,7 +5,6 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.Classes;
-import org.elasticsearch.common.io.Streams;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.network.NetworkUtils;
@@ -84,7 +83,7 @@ public class FileSourceProviderTests {
 
     private String getTestDataDir() {
         ClassLoader classLoader = Classes.getDefaultClassLoader();
-        URL data = classLoader.getResource("testdata/1.json");
+        URL data = classLoader.getResource("testdata/1.txt");
         String testDir = data.getPath();
         File rootDir = new File(testDir).getParentFile();
         return rootDir.getPath();
@@ -125,7 +124,7 @@ public class FileSourceProviderTests {
             client.prepareIndex("test", "type1", Integer.toString(i)).setSource(
                     XContentFactory.jsonBuilder().startObject()
                             .field("_id", i)
-                            .field("file_path", i + ".json")
+                            .field("file_path", i + ".txt")
                             .endObject().string()
             ).execute().actionGet();
         }
@@ -139,7 +138,7 @@ public class FileSourceProviderTests {
         SearchHits hits = searchResponse.hits();
         assertThat(hits.totalHits(), equalTo(3l));
         for (int i = 0; i < 3; i++) {
-            assertThat(hits.getAt(i).sourceAsString(), containsString("\"body\": \"Test " + hits.getAt(i).id() + "\""));
+            assertThat(hits.getAt(i).sourceAsString(), containsString("\"body\":\"Test " + hits.getAt(i).id() + "\""));
         }
 
 
