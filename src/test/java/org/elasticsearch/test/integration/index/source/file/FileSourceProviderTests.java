@@ -140,8 +140,43 @@ public class FileSourceProviderTests {
         for (int i = 0; i < 3; i++) {
             assertThat(hits.getAt(i).sourceAsString(), containsString("\"body\":\"Test " + hits.getAt(i).id() + "\""));
         }
-
-
     }
 
+    @Test
+    public void testDefaultSettings() throws Exception {
+        deleteIndex("test");
+
+        logger.info("Creating index test");
+        client.admin().indices().create(createIndexRequest("test")
+                .settings(settingsBuilder()
+                        .put("index.number_of_replicas", 0)
+                        .build())
+                .mapping("type1", XContentFactory.jsonBuilder().startObject().startObject("type")
+                        .startObject("_source")
+                        .field("provider", "file")
+                        .field("root_path", getTestDataDir())
+                        .endObject()
+                        .endObject().endObject().string())).actionGet();        
+
+
+        for (int i = 1; i < 4; i++) {
+            client.prepareIndex("test", "type1", Integer.toString(i)).setSource(
+                    XContentFactory.jsonBuilder().startObject()
+                            .field("_id", i)
+                            .field("path", i + ".txt")
+                            .endObject().string()
+            ).execute().actionGet();
+        }
+
+        ClusterHealthResponse clusterHealth = client.admin().cluster().prepareHealth().setWaitForGreenStatus().execute().actionGet();
+        assertThat(clusterHealth.timedOut(), equalTo(false));
+        client.admin().indices().prepareRefresh().execute().actionGet();
+
+        SearchResponse searchResponse = client.prepareSearch().setQuery(matchAllQuery()).execute().actionGet();
+        SearchHits hits = searchResponse.hits();
+        assertThat(hits.totalHits(), equalTo(3l));
+        for (int i = 0; i < 3; i++) {
+            assertThat(hits.getAt(i).sourceAsString(), containsString("\"body\":\"Test " + hits.getAt(i).id() + "\""));
+        }
+    }
 }
