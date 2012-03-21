@@ -25,6 +25,7 @@ import static org.elasticsearch.client.Requests.deleteIndexRequest;
 import static org.elasticsearch.common.settings.ImmutableSettings.Builder.EMPTY_SETTINGS;
 import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import static org.elasticsearch.index.query.QueryBuilders.queryString;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -83,7 +84,7 @@ public class FileSourceProviderTests {
 
     private String getTestDataDir() {
         ClassLoader classLoader = Classes.getDefaultClassLoader();
-        URL data = classLoader.getResource("testdata/1.txt");
+        URL data = classLoader.getResource("testdata/1.json");
         String testDir = data.getPath();
         File rootDir = new File(testDir).getParentFile();
         return rootDir.getPath();
@@ -105,6 +106,9 @@ public class FileSourceProviderTests {
                         .startObject("_source")
                         .field("provider", "test")
                         .endObject()
+                        .startObject("properties")
+                        .startObject("body").field("type", "string").field("store", "no").endObject()
+                        .endObject()
                         .endObject().endObject().string())).actionGet();
     }
 
@@ -124,7 +128,8 @@ public class FileSourceProviderTests {
             client.prepareIndex("test", "type1", Integer.toString(i)).setSource(
                     XContentFactory.jsonBuilder().startObject()
                             .field("_id", i)
-                            .field("file_path", i + ".txt")
+                            .field("file_path", i + ".json")
+                            .field("body", "Test " + i)
                             .endObject().string()
             ).execute().actionGet();
         }
@@ -140,6 +145,11 @@ public class FileSourceProviderTests {
         for (int i = 0; i < 3; i++) {
             assertThat(hits.getAt(i).sourceAsString(), containsString("\"body\":\"Test " + hits.getAt(i).id() + "\""));
         }
+
+        searchResponse = client.prepareSearch().setQuery(queryString("body:\"Test 2\"")).execute().actionGet();
+        hits = searchResponse.hits();
+        assertThat(hits.totalHits(), equalTo(1l));
+        assertThat(hits.getAt(0).sourceAsString(), containsString("\"body\":\"Test 2\""));
     }
 
     @Test
@@ -156,14 +166,18 @@ public class FileSourceProviderTests {
                         .field("provider", "file")
                         .field("root_path", getTestDataDir())
                         .endObject()
-                        .endObject().endObject().string())).actionGet();        
+                        .startObject("properties")
+                        .startObject("body").field("type", "string").field("store", "no").endObject()
+                        .endObject()
+                        .endObject().endObject().string())).actionGet();
 
 
         for (int i = 1; i < 4; i++) {
             client.prepareIndex("test", "type1", Integer.toString(i)).setSource(
                     XContentFactory.jsonBuilder().startObject()
                             .field("_id", i)
-                            .field("path", i + ".txt")
+                            .field("path", i + ".json")
+                            .field("body", "Test " + i)
                             .endObject().string()
             ).execute().actionGet();
         }
