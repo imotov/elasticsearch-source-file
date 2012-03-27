@@ -104,7 +104,7 @@ public class FileSourceProviderTests {
                 .settings(settings)
                 .mapping("type1", XContentFactory.jsonBuilder().startObject().startObject("type")
                         .startObject("_source")
-                        .field("provider", "test")
+                        .field("filter", "test")
                         .endObject()
                         .startObject("properties")
                         .startObject("body").field("type", "string").field("store", "no").endObject()
@@ -117,9 +117,9 @@ public class FileSourceProviderTests {
         deleteIndex("test");
         createIndex("test", settingsBuilder()
                 .put("index.number_of_replicas", 0)
-                .put("index.source.provider.test.type", "file")
-                .put("index.source.provider.test.root_path", getTestDataDir())
-                .put("index.source.provider.test.path_field", "file_path")
+                .put("index.source.filter.test.type", "file")
+                .put("index.source.filter.test.root_path", getTestDataDir())
+                .put("index.source.filter.test.path_field", "file_path")
                 .build()
         );
 
@@ -163,8 +163,7 @@ public class FileSourceProviderTests {
                         .build())
                 .mapping("type1", XContentFactory.jsonBuilder().startObject().startObject("type")
                         .startObject("_source")
-                        .field("provider", "file")
-                        .field("root_path", getTestDataDir())
+                        .field("filter", "file")
                         .endObject()
                         .startObject("properties")
                         .startObject("body").field("type", "string").field("store", "no").endObject()
@@ -176,7 +175,7 @@ public class FileSourceProviderTests {
             client.prepareIndex("test", "type1", Integer.toString(i)).setSource(
                     XContentFactory.jsonBuilder().startObject()
                             .field("_id", i)
-                            .field("path", i + ".json")
+                            .field("path", getTestDataDir() + "/" + i + ".json")
                             .field("body", "Test " + i)
                             .endObject().string()
             ).execute().actionGet();

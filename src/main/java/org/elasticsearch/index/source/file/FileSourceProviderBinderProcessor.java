@@ -1,13 +1,13 @@
 package org.elasticsearch.index.source.file;
 
-import org.elasticsearch.index.source.SourceProviderModule;
+import org.elasticsearch.index.source.SourceFilterModule;
 
 /**
  *
  */
-public class FileSourceProviderBinderProcessor extends SourceProviderModule.SourceProviderBinderProcessor {
+public class FileSourceProviderBinderProcessor extends SourceFilterModule.SourceFilterBinderProcessor {
     @Override
-    public void processSourceProviders(SourceProviderBindings sourceProviderBindings) {
-        sourceProviderBindings.processSourceProvider("file", FileSourceProviderParser.class);
+    public void processSourceProviders(SourceFilterBindings sourceProviderBindings) {
+        sourceProviderBindings.processSourceProvider(FileSourceFilter.Defaults.NAME, FileSourceFilter.class);
     }
 }

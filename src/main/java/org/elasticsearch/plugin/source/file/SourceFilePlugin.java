@@ -1,6 +1,6 @@
 package org.elasticsearch.plugin.source.file;
 
-import org.elasticsearch.index.source.SourceProviderModule;
+import org.elasticsearch.index.source.SourceFilterModule;
 import org.elasticsearch.index.source.file.FileSourceProviderBinderProcessor;
 import org.elasticsearch.plugins.AbstractPlugin;
 
@@ -19,7 +19,7 @@ public class SourceFilePlugin extends AbstractPlugin {
         return "File-based source provider";
     }
 
-    public void onModule(SourceProviderModule sourceProviderModule) {
+    public void onModule(SourceFilterModule sourceProviderModule) {
         sourceProviderModule.addProcessor(new FileSourceProviderBinderProcessor());
     }
 }
